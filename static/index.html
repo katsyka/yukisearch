@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yuki Search</title>
+<meta name="description" content="Private search with Kopro overviews.">
+<meta name="theme-color" content="#f8f9fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.svg?v=5" type="image/svg+xml">
+<link rel="search" type="application/opensearchdescription+xml" title="Yuki Search" href="/opensearch.xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app.css?v=15">
+</head>
+<body class="home">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="flake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4l2 1l2 -1"/><path d="M12 2v6.5l3 1.72"/><path d="M17.928 6.268l.134 2.232l1.866 1.232"/><path d="M20.66 7l-5.629 3.25l.01 3.458"/><path d="M19.928 14.268l-1.866 1.232l-.134 2.232"/><path d="M20.66 17l-5.629 -3.25l-2.99 1.738"/><path d="M14 20l-2 -1l-2 1"/><path d="M12 22v-6.5l-3 -1.72"/><path d="M6.072 17.732l-.134 -2.232l-1.866 -1.232"/><path d="M3.34 17l5.629 -3.25l-.01 -3.458"/><path d="M4.072 9.732l1.866 -1.232l.134 -2.232"/><path d="M3.34 7l5.629 3.25l2.99 -1.738"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c.5 4.6 2.9 7 7.5 7.5-4.6.5-7 2.9-7.5 7.5-.5-4.6-2.9-7-7.5-7.5 4.6-.5 7-2.9 7.5-7.5z"/><path d="M19 15.5c.25 2 1.25 3 3 3.25-1.75.25-2.75 1.25-3 3.25-.25-2-1.25-3-3-3.25 1.75-.25 2.75-1.25 3-3.25z" opacity=".6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></symbol>
+</svg>
+
+<header class="top">
+  <a class="brand" href="/" aria-label="Yuki Search home">
+    <svg class="flake" viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="56" height="56" rx="15" fill="#ffd23f"/><line x1="38.5" y1="38.5" x2="50" y2="50" stroke="#16181e" stroke-width="9" stroke-linecap="round"/><circle cx="27.5" cy="27.5" r="15.5" fill="#16181e"/><path d="M18.5 33.5C22.5 33.5 24.5 22.5 30.5 21.5S36 23.8 37.5 21.5" fill="none" stroke="#ffd23f" stroke-width="3.6" stroke-linecap="round"/></svg>
+    <span class="word">Yuki<span> Search</span></span>
+  </a>
+  <form class="box" id="form" role="search" autocomplete="off">
+    <svg class="ic"><use href="#i-search"/></svg>
+    <input id="q" name="q" type="search" spellcheck="false" enterkeyhint="search"
+           aria-label="Search" aria-autocomplete="list" aria-controls="sug" placeholder="Search the web">
+    <button type="button" class="clear" id="clear" aria-label="Clear" hidden><svg><use href="#i-x"/></svg></button>
+    <ul class="sug" id="sug" role="listbox" hidden></ul>
+  </form>
+  <nav class="tabs" id="tabs" aria-label="Result type">
+    <a data-t="web" href="#">All</a>
+    <a data-t="images" href="#">Images</a>
+    <a data-t="news" href="#">News</a>
+    <a data-t="videos" href="#">Videos</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="hero" id="hero">
+    <p class="tag">Search the web. Kopro reads it for you.</p>
+    <div class="try" id="try" role="group" aria-label="Ask Kopro"></div>
+    <ul class="apps" aria-label="Yuki apps">
+      <li><a href="https://maps.yukichat.lol/"><img src="https://yuki.yukichat.lol/img/ic-maps.svg" alt="" width="44" height="44"><span>Maps</span></a></li>
+      <li><a href="https://music.yukichat.lol/"><img src="https://yuki.yukichat.lol/img/ic-music.png" alt="" width="44" height="44"><span>Music</span></a></li>
+      <li><a href="https://yukichat.lol/"><img src="https://yuki.yukichat.lol/img/ic-chat.png" alt="" width="44" height="44"><span>Chat</span></a></li>
+      <li><a href="https://mail.yukichat.lol/"><img src="https://yuki.yukichat.lol/img/ic-mail.png" alt="" width="44" height="44"><span>Mail</span></a></li>
+      <li><a href="https://pages.yukichat.lol/"><img src="https://yuki.yukichat.lol/img/ic-pages.svg" alt="" width="44" height="44"><span>Pages</span></a></li>
+      <li><a href="https://yuki.yukichat.lol/yukiweb/"><img src="https://yuki.yukichat.lol/img/ic-web.svg" alt="" width="44" height="44"><span>YukiWeb</span></a></li>
+    </ul>
+  </section>
+  <div class="page" id="page" hidden>
+    <div class="col">
+      <section class="ov" id="ov" hidden aria-live="polite">
+        <div class="ov-head">
+          <svg class="spark"><use href="#i-spark"/></svg>
+          <span>Kopro overview</span>
+        </div>
+        <div class="ov-body" id="ovBody"></div>
+        <div class="ov-src" id="ovSrc"></div>
+        <button class="ov-more" id="ovMore" type="button" hidden><span>Show more</span><svg><use href="#i-chev"/></svg></button>
+      </section>
+      <div id="place"></div>
+      <div id="music"></div>
+      <div id="kpTop"></div>
+      <div id="res"></div>
+      <div class="pager" id="pager" hidden><button type="button" id="more">More results</button></div>
+    </div>
+    <aside class="side" id="side"></aside>
+  </div>
+</main>
+
+<footer class="foot" id="foot">
+  <span>Results from <span id="srcName">Tavily</span> · Overviews by Kopro</span>
+  <span><a href="/about">About</a> · <a href="https://yuki.yukichat.lol">Yuki apps</a> · <button type="button" id="langBtn" class="lang"></button></span>
+</footer>
+
+<dialog class="lb" id="lb" aria-label="Image preview">
+  <div class="lb-top"><span id="lbCount"></span><button type="button" class="lb-x" id="lbClose" data-t="Close" aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
+  <button type="button" class="lb-nav prev" id="lbPrev" data-t="Previous" aria-label="Previous"><svg><use href="#i-chev"/></svg></button>
+  <figure class="lb-fig"><img id="lbImg" alt="" referrerpolicy="no-referrer"><p class="lb-err" id="lbErr" data-t="This site doesn't let its image load here. Open the page to see it." hidden>This site doesn't let its image load here. Open the page to see it.</p></figure>
+  <button type="button" class="lb-nav next" id="lbNext" data-t="Next" aria-label="Next"><svg><use href="#i-chev"/></svg></button>
+  <div class="lb-cap"><div class="lb-meta"><b id="lbTitle"></b><span id="lbSite"></span></div>
+    <div class="lb-act"><a id="lbVisit" class="lb-btn sun" href="#" data-t="Visit page">Visit page</a><a id="lbOpen" class="lb-btn" href="#" target="_blank" rel="noopener" data-t="Open image">Open image</a></div></div>
+</dialog>
+
+<script src="/app.js?v=12"></script>
+</body>
+</html>

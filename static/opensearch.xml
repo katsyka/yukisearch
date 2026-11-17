@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>Yuki Search</ShortName>
+  <Description>Private search with Kopro overviews</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image type="image/svg+xml">https://search.yukichat.lol/favicon.svg</Image>
+  <Url type="text/html" template="https://search.yukichat.lol/search?q={searchTerms}"/>
+  <Url type="application/x-suggestions+json" template="https://search.yukichat.lol/api/suggest?q={searchTerms}&amp;os=1"/>
+</OpenSearchDescription>

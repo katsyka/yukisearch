@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yuki Search</title>
+<meta name="description" content="Search the web and get a short, cited answer from Kopro above the results. No account, no ads.">
+<link rel="icon" href="/favicon.svg?v=5" type="image/svg+xml">
+<link rel="search" type="application/opensearchdescription+xml" title="Yuki Search" href="/opensearch.xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;600;800&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:oklch(0.982 0.004 250);--paper-2:oklch(0.955 0.007 250);--ink:oklch(0.21 0.02 262);--muted:oklch(0.47 0.02 262);
+  --line:oklch(0.9 0.009 250);--accent:oklch(0.56 0.19 34);--accent-ink:oklch(0.52 0.18 34);--sun:#ffd23f;--night:#0e1016;
+  --display:"Unbounded",system-ui,sans-serif;--body:"Onest",system-ui,sans-serif;--serif:"Instrument Serif",serif;
+  --ease:cubic-bezier(.2,.8,.2,1);--r:14px;
+  --lg-ink:#16181e;--lg-h:#16181e;--lg-t:#ffd23f;color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:oklch(0.17 0.014 262);--paper-2:oklch(0.215 0.016 262);--ink:oklch(0.95 0.006 250);--muted:oklch(0.76 0.015 255);
+  --line:oklch(0.3 0.016 262);--accent:oklch(0.73 0.15 42);--accent-ink:oklch(0.78 0.13 45);
+  --lg-ink:#2a2e38;--lg-h:#f4f5f8;--lg-t:#16181e;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:oklch(0.17 0.014 262);--paper-2:oklch(0.215 0.016 262);--ink:oklch(0.95 0.006 250);--muted:oklch(0.76 0.015 255);
+  --line:oklch(0.3 0.016 262);--accent:oklch(0.73 0.15 42);--accent-ink:oklch(0.78 0.13 45);--lg-ink:#2a2e38;--lg-h:#f4f5f8;--lg-t:#16181e;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,56px)}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 24px;border-radius:99px;font:600 15.5px var(--body);text-decoration:none;
+  border:0;cursor:pointer;transition:transform .2s var(--ease),background .2s}
+.btn:active{transform:scale(.97)}
+.btn svg{width:18px;height:18px}
+.btn-sun{background:var(--sun);color:#16181e}
+.btn-sun:hover{background:#ffdc66}
+.btn-ink{background:var(--ink);color:var(--paper)}
+
+/* top bar (over the hero) */
+.bar{position:fixed;inset:0 0 auto;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px clamp(16px,4vw,40px);
+  color:var(--barc,#fff);pointer-events:none}
+.bar{transition:opacity .3s}.bar.off{opacity:0}.bar.off a{pointer-events:none!important}
+.bar a{pointer-events:auto;display:flex;align-items:center;gap:10px;text-decoration:none;font:600 16px var(--display);letter-spacing:-.02em}
+.bar .go{font:500 14.5px var(--body);letter-spacing:0}
+.bar svg{width:30px;height:30px}
+
+/* ---------- hero: zoom-through mask (Slipcast hero-zoom) ---------- */
+.zm{position:relative;height:320vh;background:var(--night)}
+.zm-pin{position:sticky;top:0;height:100vh;overflow:hidden}
+.zm-img{position:absolute;inset:0;background:#6d8fb5 url(/land/1036.jpg) center 70%/cover;will-change:transform}
+.zm svg.mask{position:absolute;inset:0;width:100%;height:100%}
+.zm-cap{position:absolute;left:clamp(20px,5vw,72px);bottom:9vh;max-width:560px;color:var(--cap,#fff);opacity:0;transform:translateY(20px);
+  transition:opacity .6s,transform .8s var(--ease)}
+.zm-cap.on{opacity:1;transform:none}
+.zm-cap small{font:600 12px var(--display);letter-spacing:.16em}
+.zm-cap h1{font:800 clamp(38px,5.4vw,76px)/.98 var(--display);letter-spacing:-.045em;margin:14px 0 22px}
+.zm-cap h1 em{font:italic 400 1.12em var(--serif);letter-spacing:-.02em}
+.zm-hint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);font:600 11px var(--display);letter-spacing:.22em;color:#ffffff90;transition:opacity .4s}
+.zm-top{position:absolute;inset:0;display:grid;align-content:end;justify-items:center;padding-bottom:17vh;color:#ffffffc8;
+  font:500 clamp(15px,1.6vw,19px) var(--body);text-align:center;transition:opacity .3s;pointer-events:none}
+
+/* ---------- sections ---------- */
+section.s{padding:clamp(80px,14vh,150px) 0}
+.kick{font:600 12.5px var(--display);letter-spacing:.16em;color:var(--accent-ink);margin:0 0 18px}
+h2{font:700 clamp(34px,4.6vw,64px)/1 var(--display);letter-spacing:-.045em;margin:0 0 22px;max-width:14ch}
+h2 em{font:italic 400 1.12em var(--serif);letter-spacing:-.02em;color:var(--accent-ink)}
+.lead{font-size:clamp(17px,1.5vw,20px);color:var(--muted);max-width:52ch;margin:0}
+
+/* live overview demo */
+.ovd{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(28px,5vw,80px);align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:30px 0 0}
+.chips button{min-height:44px;padding:0 18px;border-radius:99px;border:1px solid var(--line);background:var(--paper);color:var(--ink);
+  font:500 15px var(--body);cursor:pointer;transition:border-color .2s,background .2s}
+.chips button:hover{border-color:var(--muted)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.ov{border:1px solid var(--line);border-radius:var(--r);padding:24px 26px 20px;min-height:280px;
+  background:linear-gradient(160deg,color-mix(in oklch,var(--accent) 8%,var(--paper)),var(--paper) 55%)}
+.ov-q{display:flex;align-items:center;gap:10px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line);font-weight:500}
+.ov-q svg{width:18px;height:18px;color:var(--muted);flex:none}
+.ov-h{display:flex;align-items:center;gap:8px;font:600 13px var(--display);color:var(--accent-ink);margin-bottom:12px}
+.ov-h svg{width:17px;height:17px;color:var(--accent)}
+.ov-b{font-size:16.5px;line-height:1.65}
+.ov-b p{margin:0 0 .7em}
+.cite{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin:0 1px;border-radius:10px;font:500 11px/1 var(--body);
+  vertical-align:2px;background:var(--paper-2);border:1px solid var(--line);color:var(--muted);text-decoration:none}
+.cite:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cur{display:inline-block;width:7px;height:1.05em;margin-left:2px;vertical-align:-2px;border-radius:2px;background:var(--accent);animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+.ov-err{color:var(--muted)}
+.ov-f{margin-top:12px;font-size:13.5px;color:var(--muted)}
+.ov-f a{color:var(--accent-ink)}
+
+/* pixel resolve gallery (Slipcast pixel-resolve) */
+.px{background:var(--night);color:#f4f5f8;padding:clamp(80px,14vh,150px) 0}
+.px .kick{color:var(--sun)}
+.px h2 em{color:var(--sun)}
+.px .lead{color:#b9bdc8}
+.px-h{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:20px;margin-bottom:40px}
+.px-h button{min-height:44px;padding:0 18px;border-radius:99px;border:1px solid #ffffff40;background:none;color:#fff;font:500 14px var(--body);cursor:pointer}
+.px-h button:hover{background:#ffffff14}
+.px-g{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2vw,24px);list-style:none;padding:0;margin:0}
+.px-g li{display:grid;gap:12px}
+.px-g a{display:block;position:relative;aspect-ratio:4/5;border-radius:12px;overflow:hidden;background:#1c1f28 center/cover}
+.px-g canvas{position:absolute;inset:0;width:100%;height:100%}
+.px-g p{display:flex;justify-content:space-between;align-items:center;margin:0;font-size:15px;font-weight:500}
+.px-g p span{font:600 11.5px var(--display);letter-spacing:.1em;color:#8d93a1}
+
+/* facts */
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 clamp(28px,5vw,80px);margin-top:54px;border-top:1px solid var(--line)}
+.facts div{padding:26px 0;border-bottom:1px solid var(--line)}
+.facts b{display:block;font:600 19px/1.3 var(--display);letter-spacing:-.02em;margin-bottom:6px}
+.facts span{color:var(--muted)}
+kbd{font:600 .85em var(--body);padding:1px 7px;border-radius:6px;border:1px solid var(--line);background:var(--paper-2)}
+
+/* final CTA */
+.end{text-align:center}
+.end h2{margin-left:auto;margin-right:auto}
+.end form{display:flex;align-items:center;gap:8px;max-width:620px;margin:34px auto 0;height:58px;padding:0 6px 0 22px;border-radius:29px;
+  border:1px solid var(--line);background:var(--paper-2)}
+.end form:focus-within{border-color:color-mix(in oklch,var(--accent) 55%,var(--line));background:var(--paper)}
+.end input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;color:var(--ink)}
+.end .btn{min-height:46px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:22px clamp(16px,4vw,40px);border-top:1px solid var(--line);
+  font-size:13.5px;color:var(--muted)}
+.foot a{text-decoration:none}
+.foot a:hover{color:var(--ink)}
+
+@media (max-width:860px){
+  .ovd{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr}
+  .px-g{grid-template-columns:1fr 1fr}
+  .px-g li:last-child{display:none}
+}
+@media (max-width:520px){
+  .bar .go{display:none}
+  .ov{padding:18px 16px}
+  .end form{height:auto;flex-direction:column;padding:8px;border-radius:22px}
+  .end input{width:100%;height:46px;padding:0 12px}
+  .end .btn{width:100%;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ribbed glass photo moment (Slipcast reed-glass) */
+.rg{position:relative;height:100vh;min-height:520px;overflow:hidden;background:#1a1c22;touch-action:pan-y;cursor:ew-resize}
+.rg img,.rg canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rg.gl img{visibility:hidden}
+.rg-c{position:absolute;left:clamp(20px,5vw,64px);bottom:clamp(40px,10vh,96px);pointer-events:none;max-width:780px;color:var(--rc,#fff)}
+.rg-c small{font:600 12px var(--display);letter-spacing:.16em}
+.rg-c h2{margin:14px 0 0;font:800 clamp(48px,8vw,128px)/.9 var(--display);letter-spacing:-.06em;max-width:none}
+.rg-c h2 em{font:italic 400 1.1em var(--serif);letter-spacing:-.025em;color:inherit}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c.5 4.6 2.9 7 7.5 7.5-4.6.5-7 2.9-7.5 7.5-.5-4.6-2.9-7-7.5-7.5 4.6-.5 7-2.9 7.5-7.5z"/><path d="M19 15.5c.25 2 1.25 3 3 3.25-1.75.25-2.75 1.25-3 3.25-.25-2-1.25-3-3-3.25 1.75-.25 2.75-1.25 3-3.25z" opacity=".6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</svg>
+
+<header class="bar">
+  <a href="/" aria-label="Yuki Search">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="56" height="56" rx="15" fill="#ffd23f"/><line x1="38.5" y1="38.5" x2="50" y2="50" stroke="#16181e" stroke-width="9" stroke-linecap="round"/><circle cx="27.5" cy="27.5" r="15.5" fill="#16181e"/><path d="M18.5 33.5C22.5 33.5 24.5 22.5 30.5 21.5S36 23.8 37.5 21.5" fill="none" stroke="#ffd23f" stroke-width="3.6" stroke-linecap="round"/></svg>
+    Yuki Search
+  </a>
+  <a class="go" href="/">Open search →</a>
+</header>
+
+<main>
+<section class="zm" aria-label="Yuki Search">
+  <div class="zm-pin">
+    <div class="zm-img" role="img" aria-label="Snowy mountains with yellow tents in the foreground"></div>
+    <svg class="mask" aria-hidden="true"><defs><mask id="zmMask"><rect width="100%" height="100%" fill="#fff"/>
+      <text x="50%" y="50%" text-anchor="middle" font-family="Unbounded,sans-serif" font-weight="800" letter-spacing="-6" fill="#000">LOOK</text></mask></defs>
+      <rect width="100%" height="100%" fill="#0e1016" mask="url(#zmMask)"/></svg>
+    <div class="zm-top" id="zmTop">Yuki Search</div>
+    <div class="zm-cap" id="zmCap">
+      <small>YUKI SEARCH</small>
+      <h1>Search the web. <em>Kopro</em> reads it for you.</h1>
+      <a class="btn btn-sun" href="/">Start searching<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="zm-hint">SCROLL</div>
+  </div>
+</section>
+
+<section class="s" aria-labelledby="h-ov">
+  <div class="wrap ovd">
+    <div>
+      <p class="kick">KOPRO OVERVIEW</p>
+      <h2 id="h-ov">The answer, <em>then</em> the links.</h2>
+      <p class="lead">Before you open a single tab, Kopro reads the top results and writes a few sentences with numbered sources. Every claim points to the page it came from. If the results don't answer the question, it stays quiet instead of guessing.</p>
+      <div class="chips" role="group" aria-label="Try a question">
+        <button type="button" aria-pressed="true">Why is the sky blue?</button>
+        <button type="button" aria-pressed="false">How does bitcoin work?</button>
+        <button type="button" aria-pressed="false">Что такое чёрная дыра?</button>
+      </div>
+    </div>
+    <div class="ov" aria-live="polite">
+      <div class="ov-q"><svg aria-hidden="true"><use href="#i-search"/></svg><span id="ovQ">Why is the sky blue?</span></div>
+      <div class="ov-h"><svg aria-hidden="true"><use href="#i-spark"/></svg>Kopro overview</div>
+      <div class="ov-b" id="ovB"></div>
+      <div class="ov-f">Live, from the real search. <a id="ovLink" href="/search?q=Why%20is%20the%20sky%20blue%3F">See all results →</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="px" aria-labelledby="h-px">
+  <div class="wrap">
+    <div class="px-h">
+      <div>
+        <p class="kick">IMAGES · NEWS · VIDEOS</p>
+        <h2 id="h-px">More than <em>ten blue links.</em></h2>
+        <p class="lead">Switch tabs for a photo grid, today's stories or videos from YouTube, VK Video and Rutube. Tap a photo to search for it.</p>
+      </div>
+      <button type="button" id="pxAgain">Resolve again</button>
+    </div>
+    <ul class="px-g">
+      <li><a href="/search?q=Neuschwanstein%20Castle&amp;t=images" aria-label="Image search: Neuschwanstein Castle" style="background-image:url(/land/1040.jpg)"><canvas data-src="/land/1040.jpg"></canvas></a><p>Neuschwanstein Castle <span>IMAGES</span></p></li>
+      <li><a href="/search?q=Quiraing%20Isle%20of%20Skye&amp;t=images" aria-label="Image search: Quiraing, Isle of Skye" style="background-image:url(/land/1018.jpg)"><canvas data-src="/land/1018.jpg"></canvas></a><p>Quiraing, Isle of Skye <span>IMAGES</span></p></li>
+      <li><a href="/search?q=sand%20dunes&amp;t=images" aria-label="Image search: sand dunes" style="background-image:url(/land/525.jpg)"><canvas data-src="/land/525.jpg"></canvas></a><p>Sand dunes <span>IMAGES</span></p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="s" aria-labelledby="h-f">
+  <div class="wrap">
+    <p class="kick">THE SMALL THINGS</p>
+    <h2 id="h-f">Made to be <em>the default.</em></h2>
+    <div class="facts">
+      <div><b>No account, no ads</b><span>Open it and search. Nothing to sign in to and no ad profile built from your queries.</span></div>
+      <div><b>Press <kbd>/</kbd> anywhere</b><span>Jumps to the search box. Arrow keys walk through suggestions as you type.</span></div>
+      <div><b>Add it to your browser</b><span>Yuki Search offers itself as a search engine, so Chrome, Edge and Firefox can make it the default in two clicks.</span></div>
+      <div><b>Russian and English</b><span>The page follows your browser language, and Kopro answers in the language you asked in.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="rg" aria-labelledby="h-rg">
+  <img src="/land/564.jpg" alt="Light falling through the curved orange walls of a sandstone slot canyon" width="1600" height="900" loading="lazy">
+  <canvas aria-hidden="true"></canvas>
+  <div class="rg-c"><small>MOVE TO SLIDE THE GLASS</small><h2 id="h-rg">Through<br><em>the noise.</em></h2></div>
+</section>
+
+<section class="s end" aria-labelledby="h-end">
+  <div class="wrap">
+    <h2 id="h-end">Go on, <em>ask something.</em></h2>
+    <form action="/search" role="search">
+      <input name="q" type="search" placeholder="Search the web" aria-label="Search the web" required>
+      <button class="btn btn-sun" type="submit">Search<svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <span>Yuki Search · results from Tavily, overviews by Kopro · photos from Unsplash</span>
+  <span><a href="https://maps.yukichat.lol/about">Yuki Maps</a> · <a href="https://yuki.yukichat.lol">All Yuki apps</a></span>
+</footer>
+
+<script>
+// ---------- hero: zoom-through mask (Slipcast hero-zoom, adapted: zooms through the O wherever it sits) ----------
+(()=>{
+const sec=document.querySelector(".zm"),cover=sec.querySelector("svg > rect"),txt=sec.querySelector("text"),img=sec.querySelector(".zm-img"),
+  cap=document.getElementById("zmCap"),bar=document.querySelector(".bar"),hint=sec.querySelector(".zm-hint"),top=document.getElementById("zmTop");
+let capC="#fff";const WORD=txt.textContent,OI=WORD.indexOf("O");let ox=0,oy=0;
+const ctx=document.createElement("canvas").getContext("2d");
+const measure=()=>{const fs=Math.min(innerWidth*.22,innerHeight*.42);txt.setAttribute("font-size",fs);txt.removeAttribute("transform");
+  ctx.font=`800 ${fs}px Unbounded,sans-serif`;const m=ctx.measureText("O"),base=innerHeight/2+m.actualBoundingBoxAscent/2;
+  txt.setAttribute("y",base);const sx=txt.getStartPositionOfChar(OI).x,ex=txt.getEndPositionOfChar(OI).x;ox=(sx+ex)/2;
+  oy=base-(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2;up()};
+const up=()=>{const r=sec.getBoundingClientRect(),p=Math.min(1,Math.max(0,-r.top/(sec.offsetHeight-innerHeight)));
+  const e=Math.min(1,Math.pow(p/.8,2.6)),s=1+e*30;
+  txt.setAttribute("transform",`translate(${ox} ${oy}) scale(${s}) translate(${-ox} ${-oy})`);
+  cover.style.opacity=p<.78?1:Math.max(0,1-(p-.78)/.07);
+  img.style.transform=`scale(${1.35-.35*Math.min(1,p*1.2)})`;
+  cap.classList.toggle("on",p>.8);hint.style.opacity=p>.05?0:1;top.style.opacity=p>.04?0:1;bar.classList.toggle("off",r.bottom<90);bar.style.setProperty("--barc",p>.8?capC:"#fff")};
+addEventListener("scroll",up,{passive:true});addEventListener("resize",measure);
+(document.fonts?document.fonts.ready:Promise.resolve()).then(measure);measure();
+// caption colour picked from the photo pixels under it (no shadows, no panels)
+const im=new Image();
+const pick=()=>{if(!im.naturalWidth)return;const W=innerWidth,H=innerHeight,s=Math.max(W/im.naturalWidth,H/im.naturalHeight),
+  dw=im.naturalWidth*s,dh=im.naturalHeight*s,ox=(W-dw)/2,oy=(H-dh)*.7,r=cap.getBoundingClientRect(),pin=sec.querySelector(".zm-pin").getBoundingClientRect(),
+  c=document.createElement("canvas");c.width=48;c.height=48;const x=c.getContext("2d");
+  x.drawImage(im,(r.left-ox)/s,(r.top-pin.top-oy)/s,r.width/s,r.height/s,0,0,48,48);
+  const d=x.getImageData(0,0,48,48).data;let L=0;for(let i=0;i<d.length;i+=4)L+=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];L/=d.length/4;
+  capC=L>128?"#16181e":"#ffffff";cap.style.setProperty("--cap",capC);up()};
+im.onload=pick;addEventListener("resize",pick);im.src="/land/1036.jpg";
+})();
+
+// ---------- live overview demo ----------
+(()=>{
+const body=document.getElementById("ovB"),qEl=document.getElementById("ovQ"),link=document.getElementById("ovLink");
+const btns=[...document.querySelectorAll(".chips button")];let es=null,sources=[];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const md=(t,done)=>{let h=esc(t).split(/\n+/).filter(l=>l.trim()).map(l=>"<p>"+l.replace(/^[-*]\s+/,"• ").replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+  .replace(/\[(\d+(?:\s*,\s*\d+)*)\]/g,(m,n)=>n.split(/\s*,\s*/).map(k=>{const s=sources[+k-1];return s?`<a class="cite" href="${esc(s.url)}" title="${esc(s.title)}">${k}</a>`:""}).join(""))+"</p>").join("");
+  return done?h:h.replace(/<\/p>$/,'<span class="cur"></span></p>')};
+function run(q){if(es)es.close();let text="";sources=[];qEl.textContent=q;link.href="/search?q="+encodeURIComponent(q);
+  body.innerHTML='<p class="ov-err">Reading the results…</p>';
+  es=new EventSource("/api/overview?q="+encodeURIComponent(q));const me=es;
+  me.onmessage=ev=>{const d=JSON.parse(ev.data);if(d.sources)sources=d.sources;if(d.t){text+=d.t;if(!/^\s*N(O(_\w*)?)?\s*$/.test(text))body.innerHTML=md(text,false)}
+    if(d.done){me.close();if(!text||/^\s*NO_ANSWER/.test(text)||d.error)body.innerHTML='<p class="ov-err">Kopro is busy right now. Open the full results instead.</p>';else body.innerHTML=md(text,true)}};
+  me.onerror=()=>{me.close();if(!text)body.innerHTML='<p class="ov-err">Couldn\'t reach Kopro. Try again in a moment.</p>';else body.innerHTML=md(text,true)}}
+btns.forEach(b=>b.addEventListener("click",()=>{btns.forEach(x=>x.setAttribute("aria-pressed",x===b));run(b.textContent)}));
+const io=new IntersectionObserver(e=>{if(e[0].isIntersecting){io.disconnect();run(btns[0].textContent)}},{threshold:.3});io.observe(body);
+})();
+
+// ---------- pixel resolve gallery (Slipcast pixel-resolve) ----------
+(()=>{
+const root=document.querySelector(".px"),STEPS=[64,40,24,14,8,4,2,1],still=matchMedia("(prefers-reduced-motion:reduce)").matches;
+const cards=[...root.querySelectorAll("canvas")].map(c=>{const im=new Image();im.src=c.dataset.src;return{c,x:c.getContext("2d"),im,k:0,timer:0,tiny:document.createElement("canvas")}});
+function draw(o){const{c,x,im,tiny}=o;if(!im.complete||!im.naturalWidth||!c.width)return;
+  const s=Math.max(c.width/im.naturalWidth,c.height/im.naturalHeight),w=im.naturalWidth*s,h=im.naturalHeight*s,ox=(c.width-w)/2,oy=(c.height-h)/2,b=STEPS[o.k]*c.width/600;
+  if(b<=1.2){x.imageSmoothingEnabled=true;x.drawImage(im,ox,oy,w,h);return}
+  tiny.width=Math.max(1,Math.round(c.width/b));tiny.height=Math.max(1,Math.round(c.height/b));const t=tiny.getContext("2d");
+  t.drawImage(im,ox/b,oy/b,w/b,h/b);x.imageSmoothingEnabled=false;x.drawImage(tiny,0,0,c.width,c.height)}
+function resolve(o,from=0,delay=0){clearTimeout(o.timer);o.k=still?STEPS.length-1:from;draw(o);
+  const next=()=>{if(o.k>=STEPS.length-1)return;o.k++;draw(o);o.timer=setTimeout(next,70+o.k*12)};o.timer=setTimeout(next,delay+90)}
+cards.forEach((o,i)=>{o.im.onload=()=>draw(o);
+  new ResizeObserver(()=>{const d=Math.min(devicePixelRatio,2);o.c.width=o.c.clientWidth*d;o.c.height=o.c.clientHeight*d;draw(o)}).observe(o.c);
+  new IntersectionObserver((e,ob)=>{if(e[0].isIntersecting){ob.disconnect();resolve(o,0,i*180)}},{threshold:.35}).observe(o.c);
+  const a=o.c.parentElement,again=()=>{if(o.k===STEPS.length-1)resolve(o,3)};a.addEventListener("pointerenter",again);a.addEventListener("focus",again)});
+document.getElementById("pxAgain").addEventListener("click",()=>cards.forEach((o,i)=>resolve(o,0,i*180)));
+})();
+
+// ---------- ribbed glass (Slipcast reed-glass): every rib is a small lens over the photo ----------
+document.querySelectorAll(".rg").forEach(root=>{
+const img=root.querySelector("img"),c=root.querySelector("canvas"),cap=root.querySelector(".rg-c");
+// title colour from the pixels under it
+const pick=()=>{try{const t=document.createElement("canvas");t.width=t.height=32;const x=t.getContext("2d");
+  x.drawImage(img,0,img.naturalHeight*.55,img.naturalWidth*.6,img.naturalHeight*.4,0,0,32,32);const d=x.getImageData(0,0,32,32).data;let L=0;
+  for(let i=0;i<d.length;i+=4)L+=.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];cap.style.setProperty("--rc",L/(d.length/4)>128?"#16181e":"#ffffff")}catch(e){}};
+const gl=c.getContext("webgl",{antialias:false});
+const RIB=34,BEND=.6,FROST=.3;
+const vs="attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;v.y=1.-v.y;gl_Position=vec4(p,0,1);}";
+const fs=`precision highp float;varying vec2 v;uniform sampler2D T;uniform float pitch,shift;uniform vec2 R,cv;
+vec3 src(vec2 q){return texture2D(T,clamp((q-.5)*cv+.5,0.,1.)).rgb;}
+void main(){
+  float x=v.x*R.x+shift*pitch,u=fract(x/pitch),n=u*2.-1.;
+  float rc=(floor(x/pitch)+.5)*pitch-shift*pitch;
+  float sx=(rc+(n+.35*n*n*n)*.5*pitch*${(.15+(-2.4-.15)*BEND).toFixed(3)})/R.x;
+  vec3 c=vec3(0);float b=${(FROST*.012).toFixed(4)};
+  for(int i=-2;i<=2;i++){float f=float(i);c+=src(vec2(sx+f*b*.4,v.y+f*b))*.2;}
+  float ca=${(.0018*BEND).toFixed(5)}*n;
+  c.r=mix(c.r,src(vec2(sx+ca,v.y)).r,.5);c.b=mix(c.b,src(vec2(sx-ca,v.y)).b,.5);
+  c*=1.-.28*pow(abs(n),3.);
+  c+=smoothstep(.86,1.,abs(n))*.06;
+  c+=pow(max(0.,1.-abs(n-.55+shift*.2)*4.),4.)*.07;
+  gl_FragColor=vec4(c,1);
+}`;
+const start=()=>{pick();if(!gl)return;
+const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o},pr=gl.createProgram();
+gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))return;gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const pl=gl.getAttribLocation(pr,"p");gl.enableVertexAttribArray(pl);gl.vertexAttribPointer(pl,2,gl.FLOAT,false,0,0);
+const U=n=>gl.getUniformLocation(pr,n);
+gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());
+for(const[k,v]of[[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE],[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR]])gl.texParameteri(gl.TEXTURE_2D,k,v);
+const still=matchMedia("(prefers-reduced-motion:reduce)").matches;
+let vis=false,raf=0,shift=0,target=0,touched=-1e9,d=1;
+function size(){d=Math.min(devicePixelRatio,2);c.width=c.clientWidth*d;c.height=c.clientHeight*d;gl.viewport(0,0,c.width,c.height);
+  gl.uniform2f(U("R"),c.width,c.height);gl.uniform1f(U("pitch"),RIB*d);
+  const ca=c.width/c.height,ia=img.naturalWidth/img.naturalHeight;gl.uniform2f(U("cv"),ca>ia?1:ca/ia,ca>ia?ia/ca:1)}
+function frame(t){raf=0;if(!vis)return;
+  if(!still&&t-touched>2500)target=Math.sin(t/2600)*.6;
+  shift+=(target-shift)*.08;gl.uniform1f(U("shift"),shift);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  if(!still||Math.abs(target-shift)>.001)raf=requestAnimationFrame(frame)}
+const go=()=>{if(!raf)raf=requestAnimationFrame(frame)};
+try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img)}catch(e){return}
+root.classList.add("gl");size();
+new ResizeObserver(()=>{size();go()}).observe(c);
+new IntersectionObserver(e=>{vis=e[0].isIntersecting;if(vis)go()}).observe(root);
+const move=e=>{const r=root.getBoundingClientRect();target=((e.clientX-r.left)/r.width-.5)*2;touched=performance.now();go()};
+root.addEventListener("pointermove",move);root.addEventListener("pointerdown",move)};
+img.complete&&img.naturalWidth?start():img.addEventListener("load",start);
+});
+</script>
+</body>
+</html>
